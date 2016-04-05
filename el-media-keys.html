@@ -1,0 +1,56 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+
+<dom-module id="el-media-keys">
+  <script>
+  (function() {
+    'use strict';
+
+    const KEYS = {
+      NEXT: 'MediaNextTrack',
+      PREV: 'MediaPreviousTrack',
+      PLAY_PAUSE: 'MediaPlayPause'
+    };
+
+    Polymer({
+      is: 'el-media-keys',
+
+      ready() {
+        let remote = require('remote');
+
+        this._shortcut = remote.require('global-shortcut');
+        this._electron = remote.require('electron');
+
+        this._bind();
+      },
+
+      register(eventName, callback) {
+        this._shortcut.register(eventName, callback);
+      },
+
+      unregister(eventName) {
+        this._shortcut.unregister(eventName);
+      },
+
+      _bind() {
+        this.register(KEYS.NEXT, this._fire('next-track'));
+        this.register(KEYS.PREV, this._fire('previous-track'));
+        this.register(KEYS.PLAY_PAUSE, this._fire('play-pause'));
+
+        // When the app quits next, unbind these properly.
+        this._electron.app.on('quit', this._unbind);
+      },
+
+      _unbind() {
+        this.unregister(KEYS.NEXT);
+        this.unregister(KEYS.PREV);
+        this.unregister(KEYS.PLAY_PAUSE);
+      },
+
+      _fire(eventName) {
+        return () => this.fire(eventName);
+      }
+
+    });
+  }());
+  </script>
+</dom-module>
